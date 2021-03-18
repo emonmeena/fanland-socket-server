@@ -7,17 +7,38 @@ const io = require("socket.io")(http, {
 });
 
 io.on("connection", (socket) => {
-  let chatRoomId = "";
   socket.on("user-active", (activeUser) => {
-    chatRoomId = activeUser.chatRoomId;
+    let chatRoomId = activeUser.chatRoomId;
     socket.join(chatRoomId);
-    socket.broadcast.to(chatRoomId).emit("user-online", activeUser);
+    socket.broadcast.to(chatRoomId).emit("user-online", {
+      activeUserId: activeUser.userId,
+      socketId: socket.id,
+    });
+  });
+
+  socket.on("user-deactive", (userData) => {
+    let chatRoomId = userData.chatRoomId;
+    socket.broadcast.to(chatRoomId).emit("user-offline", userData.userId);
+    socket.leave(chatRoomId);
+  });
+
+  socket.on("existing-user", (data) => {
+    console.log(data);
+    socket.broadcast
+      .to(data.newUserSocketId)
+      .emit("show-existing-user", data.existingUserId);
   });
 
   socket.on("chat-message", (chat) => {
-    socket.broadcast.to(chatRoomId).emit("receive-message", chat);
+    socket.broadcast.to(chat.chatroom_id).emit("receive-message", chat);
   });
-  socket.on("disconnect", () => {});
+  socket.on("chat-delete", ({ chatroomId, chatId }) => {
+    socket.broadcast.to(chatroomId).emit("to-delete-chat", chatId);
+  });
+  // socket.on("disconnect", () => {
+  // });
 });
 
-http.listen(4000, () => {});
+http.listen(4000, () => {
+  console.log("listening on port: ", 4000);
+});
