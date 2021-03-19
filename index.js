@@ -23,7 +23,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("existing-user", (data) => {
-    console.log(data);
     socket.broadcast
       .to(data.newUserSocketId)
       .emit("show-existing-user", data.existingUserId);
