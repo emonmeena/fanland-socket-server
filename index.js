@@ -34,8 +34,12 @@ io.on("connection", (socket) => {
   socket.on("chat-delete", ({ chatroomId, chatId }) => {
     socket.broadcast.to(chatroomId).emit("to-delete-chat", chatId);
   });
-  // socket.on("disconnect", () => {
-  // });
+  socket.on("user-ban", ({ id, room }) => {
+    socket.broadcast.to(room).emit("ban-user", id);
+  });
+  socket.on("make-admin", ({ id, room }) => {
+    socket.broadcast.to(room).emit("admin-popup", id);
+  });
 });
 
 http.listen(4000, () => {
